@@ -24,6 +24,7 @@ class LanguageBatchBo
 	 */
 	public function __construct($applicationLngGenerator = null, $appletLngGenerator = null)
 	{
+		
 		if(is_null($applicationLngGenerator)) {
 			$this->applicationLngGenerator = new Generators\Application();
 		}
@@ -54,7 +55,7 @@ class LanguageBatchBo
 
 		echo "\nGetting applet language XMLs..\n";
 		foreach ($applets as $appletDirectory => $appletLanguageId) {
-			$this->appletLngGenerator->generate();
+			$this->appletLngGenerator->generate($appletDirectory, $appletLanguageId);
 		}
 		echo "\nApplet language XMLs generated.\n";
 	}
