@@ -9,73 +9,73 @@
 namespace Language\Generators;
 
 
-use Language\ApiCall;
 use Language\Config;
 
 class Application extends AbstractGenerator
 {
+    /**
+     * @param $app
+     * @param array $languages
+     * @throws \Exception
+     */
     public function generate($app, array $languages)
     {
-        foreach($languages as $lang) {
+        foreach ($languages as $lang) {
             echo "[APPLICATION: " . $app . "]\n", "\t[LANGUAGE: " . $lang . "]";
-            if ($this->getLanguageFile($app, $lang)) {
+            if ($this->cacheLanguage($app, $lang)) {
                 echo " OK\n";
             } else {
                 throw new \Exception('Unable to generate language file!');
             }
         }
-        
+
     }
 
     /**
      * Gets the language file for the given language and stores it.
      *
-     * @param string $application   The name of the application.
-     * @param string $language      The identifier of the language.
-     *
-     * @throws CurlException   If there was an error during the download of the language file.
-     *
-     * @return bool   The success of the operation.
+     * @param string $application The name of the application.
+     * @param string $language The identifier of the language.
+     * @return bool
+     * @throws \Exception
      */
-    protected function getLanguageFile($application, $language)
+    protected function cacheLanguage($application, $language)
     {
-        try {
-            $languageResponse = $this->api()->call(
-                'system_api',
-                'language_api',
-                array(
-                    'system' => 'LanguageFiles',
-                    'action' => 'getLanguageFile'
-                ),
-                array('language' => $language)
-            );
-            // If we got correct data we store it.
-            $destination = self::getLanguageCachePath($application) . $language . '.php';
-            // If there is no folder yet, we'll create it.
-            var_dump($destination);
-            if (!is_dir(dirname($destination))) {
-                mkdir(dirname($destination), 0755, true);
-            }
-
-            $result = file_put_contents($destination, $languageResponse['data']);
-
-            return (bool)$result;
-        }
-        catch (\Exception $e) {
-            throw new \Exception('Error during getting language file: (' . $application . '/' . $language . ')');
-        }
+        $data = $this->getLanguage($language);
+        return $this->save($application, $language, $data);
     }
 
     /**
-     * Gets the directory of the cached language files.
-     *
-     * @param string $application   The application.
-     *
-     * @return string   The directory of the cached language files.
+     * @param string $language
+     * @return mixed
+     * @throws \Language\Exceptions\ApiCall\NoResponse
+     * @throws \Language\Exceptions\ApiCall\WrongContent
+     * @throws \Language\Exceptions\ApiCall\WrongResponse
      */
-    protected static function getLanguageCachePath($application)
+    protected function getLanguage($language)
     {
-        return Config::get('system.paths.root') . '/cache/' . $application. '/';
+        $result = $this->api()->call(
+            'system_api',
+            'language_api',
+            array(
+                'system' => 'LanguageFiles',
+                'action' => 'getLanguageFile'
+            ),
+            array('language' => $language)
+        );
+        return $result['data'];
+    }
+
+    /**
+     * @param $application
+     * @param $language
+     * @param $data
+     * @return bool
+     */
+    protected function save($application, $language, $data)
+    {
+        $destination = Config::get('system.paths.root') . '/cache/' . $application . '/' . $language . '.php';
+        return $this->storage()->put($destination, $data);
     }
 
 }
