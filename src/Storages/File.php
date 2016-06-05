@@ -11,12 +11,6 @@ namespace Language\Storages;
 
 class File implements Storage
 {
-
-    public function get($key)
-    {
-
-    }
-
     /**
      * @param string $key
      * @param string $value

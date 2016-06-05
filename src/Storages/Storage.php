@@ -10,9 +10,6 @@ namespace Language\Storages;
 
 
 interface Storage
-{
-
-    public function get($key);
-    
+{    
     public function put($key, $value);
 }
